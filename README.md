@@ -111,3 +111,21 @@ PayFlow/
 | 7  | Cancel Transaction     | Cancel a transaction if its status is PENDING                  |
 
 ---
+
+## Architecture
+
+### Class Hierarchy
+
+```
+BaseTransaction (abstract)
+    |
+    +-- Transaction
+            |
+            +-- UPIPayment
+            +-- NetBankingPayment
+```
+
+- `BaseTransaction` defines common fields (txnId, amount, timestamp, status) and declares the abstract method `processPayment()`.
+- `Transaction` extends it with sender/receiver bank information and User references.
+- `UPIPayment` and `NetBankingPayment` override `processPayment()` with their own payment logic — this is runtime polymorphism.
+
