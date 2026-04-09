@@ -97,3 +97,17 @@ PayFlow/
 | Testing  | Custom test runner (TestCases.ts)   |
 
 ---
+
+## Core Functionalities
+
+| #  | Feature                | Description                                                    |
+|----|------------------------|----------------------------------------------------------------|
+| 1  | Register User          | Create a new user with account details and initial deposit     |
+| 2  | Login                  | Validate userId and password                                   |
+| 3  | Check Balance          | Query account balance via BankAPI                              |
+| 4  | Send Money (UPI)       | Enter receiver, amount, MPIN — validate, debit, credit, log   |
+| 5  | Send Money (Net Banking) | Same flow as UPI with IFSC code verification                 |
+| 6  | View Transaction History | Display all transactions from the PaymentGateway Map          |
+| 7  | Cancel Transaction     | Cancel a transaction if its status is PENDING                  |
+
+---
