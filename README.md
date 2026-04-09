@@ -128,4 +128,26 @@ BaseTransaction (abstract)
 - `BaseTransaction` defines common fields (txnId, amount, timestamp, status) and declares the abstract method `processPayment()`.
 - `Transaction` extends it with sender/receiver bank information and User references.
 - `UPIPayment` and `NetBankingPayment` override `processPayment()` with their own payment logic — this is runtime polymorphism.
+### Design Patterns
+
+**1. Singleton Pattern — PaymentGateway**
+
+Only one instance of `PaymentGateway` exists throughout the application. This prevents inconsistent transaction state across the system.
+
+```typescript
+const gateway = PaymentGateway.getInstance();
+```
+
+- Constructor is private.
+- Access is through `getInstance()` which lazily creates the single instance.
+
+**2. Factory Pattern — TransactionFactory**
+
+The `TransactionFactory` decouples object creation from business logic. The caller does not need to know which concrete class to instantiate.
+
+```typescript
+const txn = TransactionFactory.createTransaction("UPI", txnId, 500, "ACC1001", "ACC1002");
+```
+
+- Adding a new payment type (e.g., WalletPayment) requires only a new case in the factory — no changes to existing business logic.
 
