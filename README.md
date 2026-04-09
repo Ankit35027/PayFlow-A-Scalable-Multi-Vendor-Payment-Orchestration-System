@@ -85,3 +85,15 @@ PayFlow/
 ```
 
 ---
+
+## Tech Stack
+
+| Layer    | Technology                          |
+|----------|-------------------------------------|
+| Backend  | TypeScript, Node.js, ts-node        |
+| Frontend | HTML5, CSS3, Vanilla JavaScript     |
+| Fonts    | Google Fonts (Sora, DM Sans, JetBrains Mono) |
+| Server   | `npx serve` (static file server)    |
+| Testing  | Custom test runner (TestCases.ts)   |
+
+---
