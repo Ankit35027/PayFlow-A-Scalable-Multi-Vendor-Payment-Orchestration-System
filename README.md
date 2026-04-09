@@ -161,3 +161,73 @@ const txn = TransactionFactory.createTransaction("UPI", txnId, 500, "ACC1001", "
 | Inheritance    | `BaseTransaction` -> `Transaction` -> `UPIPayment` / `NetBankingPayment` |
 | Polymorphism   | `processPayment()` is overridden in each subclass; `PaymentGateway` calls it without knowing the concrete type |
 
+
+
+### SOLID Principles
+
+| Principle                      | Implementation                                                                    |
+|-------------------------------|-----------------------------------------------------------------------------------|
+| Single Responsibility (SRP)   | Each class has one job — `BankAPI` handles banking, `TransactionLogger` handles logging, `User` manages user data |
+| Open/Closed (OCP)             | New payment types can be added by extending `Transaction` without modifying existing classes |
+| Liskov Substitution (LSP)     | `UPIPayment` and `NetBankingPayment` can replace `Transaction` anywhere without breaking the system |
+| Interface Segregation (ISP)   | `IPaymentProcessor` and `ITransactionQuery` are separated — clients depend only on what they need |
+| Dependency Inversion (DIP)    | `PaymentGateway` depends on `BaseTransaction` abstraction, not on concrete `UPIPayment` or `NetBankingPayment` |
+
+---
+
+## UML Diagrams
+
+All diagrams are located in `payment-gateway/diagrams/`.
+
+| Diagram          | File                  | Description                                          |
+|------------------|-----------------------|------------------------------------------------------|
+| Class Diagram    | `class_diagram.png`   | All classes, interfaces, attributes, methods, and relationships |
+| ER Diagram       | `er_diagram.png`      | Entity-Relationship model showing data entities and their associations |
+| Sequence Diagram | `sequence_diagram.png`| End-to-end Send Money flow showing interactions between all components |
+| Use Case Diagram | `usecase_diagram.png` | User-facing functionalities and their included sub-operations |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or above)
+- npm
+
+### Backend Setup
+
+```bash
+cd payment-gateway
+npm install
+npm run dev
+```
+
+This starts the console-based interactive application. Follow the on-screen menu to register users, log in, send money, check balance, view history, or cancel transactions.
+
+### Frontend Setup
+
+```bash
+cd payment-gateway-frontend
+npm run dev
+```
+
+This starts a static file server on `http://localhost:3001`. Open the URL in any modern browser.
+
+Note: The frontend currently uses `sessionStorage` as a mock data layer. It operates independently of the backend and is designed to demonstrate the UI/UX layer.
+
+---
+
+## Running Tests
+
+The backend includes an automated test suite covering registration, login, balance checks, UPI payments, Net Banking payments, transaction history, and cancellation flows.
+
+```bash
+cd payment-gateway
+npm test
+```
+
+This runs `TestCases.ts` which executes all test scenarios and prints pass/fail results to the console.
+
+---
+
