@@ -151,3 +151,13 @@ const txn = TransactionFactory.createTransaction("UPI", txnId, 500, "ACC1001", "
 
 - Adding a new payment type (e.g., WalletPayment) requires only a new case in the factory — no changes to existing business logic.
 
+
+### OOP Concepts
+
+| Concept        | Where it is applied                                              |
+|----------------|------------------------------------------------------------------|
+| Encapsulation  | All class fields are private with getters/setters (User, BaseTransaction, Transaction) |
+| Abstraction    | `BaseTransaction` is abstract; interfaces define contracts without exposing implementation details |
+| Inheritance    | `BaseTransaction` -> `Transaction` -> `UPIPayment` / `NetBankingPayment` |
+| Polymorphism   | `processPayment()` is overridden in each subclass; `PaymentGateway` calls it without knowing the concrete type |
+
