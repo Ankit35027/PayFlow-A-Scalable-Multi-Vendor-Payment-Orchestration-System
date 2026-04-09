@@ -231,3 +231,61 @@ This runs `TestCases.ts` which executes all test scenarios and prints pass/fail 
 
 ---
 
+## Demo Credentials
+
+The system comes pre-loaded with three user accounts for testing:
+
+| Name   | User ID   | Password  | Account No | MPIN | Balance     |
+|--------|-----------|-----------|------------|------|-------------|
+| Ankit  | ankit01   | pass123   | ACC1001    | 1234 | 50,000.00   |
+| Priya  | priya02   | pass456   | ACC1002    | 5678 | 30,000.00   |
+| Rahul  | rahul03   | pass789   | ACC1003    | 9012 | 75,000.00   |
+
+For the frontend, use: User ID `U001`, Password `pass123`, MPIN `1234`.
+
+---
+
+## File Reference
+
+### Backend — Key Files
+
+| File                    | Purpose                                                  |
+|-------------------------|----------------------------------------------------------|
+| `Main.ts`               | Application entry point with interactive console menu    |
+| `TestCases.ts`          | Automated test suite with 75+ test scenarios             |
+| `BaseTransaction.ts`    | Abstract base class with common transaction fields       |
+| `Transaction.ts`        | Concrete class adding sender/receiver and User references|
+| `UPIPayment.ts`         | UPI-specific payment processing logic                    |
+| `NetBankingPayment.ts`  | Net Banking-specific payment processing logic            |
+| `User.ts`               | User model with authentication methods                   |
+| `PaymentGateway.ts`     | Singleton gateway — central transaction engine           |
+| `TransactionFactory.ts` | Factory for creating payment type objects                 |
+| `BankAPI.ts`            | Simulated bank backend (validate, debit, credit, balance)|
+| `TransactionLogger.ts`  | Logging utility for transaction events                   |
+| `IPaymentProcessor.ts`  | Interface for payment processing operations              |
+| `ITransactionQuery.ts`  | Interface for transaction query operations               |
+| `IPaymentGateway.ts`    | Combined interface extending both processor and query    |
+
+### Frontend — Key Files
+
+| File              | Purpose                                              |
+|-------------------|------------------------------------------------------|
+| `index.html`      | Single-page application shell                        |
+| `data.js`         | State management using sessionStorage                |
+| `ui.js`           | Reusable UI helpers (toasts, modals, loading states) |
+| `auth.js`         | Login and registration form handling                 |
+| `dashboard.js`    | Dashboard view with account summary                  |
+| `payment.js`      | Three-step payment modal (Details, Confirm, Result)  |
+| `history.js`      | Transaction list with search and filter              |
+| `router.js`       | Client-side view switching and navigation            |
+| `variables.css`   | Design tokens (colors, spacing, typography)          |
+| `components.css`  | Reusable component styles (buttons, inputs, cards)   |
+| `animations.css`  | Micro-interactions and CSS transitions               |
+
+---
+
+## License
+
+MIT
+
+
