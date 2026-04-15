@@ -59,28 +59,6 @@ PayFlow/
 |   |-- diagrams/                    # UML diagrams
 |   |-- package.json
 |   |-- tsconfig.json
-|
-|-- payment-gateway-frontend/        # Frontend (HTML/CSS/JS)
-|   |-- index.html                   # Single-page application shell
-|   |-- styles/
-|   |   |-- variables.css            # Design tokens and CSS variables
-|   |   |-- base.css                 # Reset and base styles
-|   |   |-- components.css           # Reusable UI components
-|   |   |-- layout.css               # Page layout and grid
-|   |   |-- pages.css                # Page-specific styles
-|   |   |-- animations.css           # Micro-interactions and transitions
-|   |-- js/
-|   |   |-- data.js                  # State management (sessionStorage)
-|   |   |-- ui.js                    # UI helpers (toasts, modals, loaders)
-|   |   |-- auth.js                  # Login and registration flows
-|   |   |-- dashboard.js             # Dashboard view
-|   |   |-- payment.js               # Payment modal (3-step flow)
-|   |   |-- history.js               # Transaction history with filters
-|   |   |-- router.js                # Client-side view switching
-|   |-- assets/
-|   |   |-- icons.js                 # SVG icon library
-|   |-- package.json
-|
 |-- README.md
 ```
 
@@ -266,23 +244,6 @@ For the frontend, use: User ID `U001`, Password `pass123`, MPIN `1234`.
 | `ITransactionQuery.ts`  | Interface for transaction query operations               |
 | `IPaymentGateway.ts`    | Combined interface extending both processor and query    |
 
-### Frontend — Key Files
-
-| File              | Purpose                                              |
-|-------------------|------------------------------------------------------|
-| `index.html`      | Single-page application shell                        |
-| `data.js`         | State management using sessionStorage                |
-| `ui.js`           | Reusable UI helpers (toasts, modals, loading states) |
-| `auth.js`         | Login and registration form handling                 |
-| `dashboard.js`    | Dashboard view with account summary                  |
-| `payment.js`      | Three-step payment modal (Details, Confirm, Result)  |
-| `history.js`      | Transaction list with search and filter              |
-| `router.js`       | Client-side view switching and navigation            |
-| `variables.css`   | Design tokens (colors, spacing, typography)          |
-| `components.css`  | Reusable component styles (buttons, inputs, cards)   |
-| `animations.css`  | Micro-interactions and CSS transitions               |
-
----
 
 ## License
 
