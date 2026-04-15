@@ -2,29 +2,7 @@ import { Transaction } from "../models/Transaction";
 import { UPIPayment } from "../models/UPIPayment";
 import { NetBankingPayment } from "../models/NetBankingPayment";
 
-/**
- * ┌─────────────────────────────────────────────────────────────────┐
- * │ TransactionFactory — Factory Design Pattern                    │
- * ├─────────────────────────────────────────────────────────────────┤
- * │ DESIGN PATTERN: FACTORY                                        │
- * │   Decouples transaction OBJECT CREATION from business logic.   │
- * │   The caller doesn't need to know which concrete class to      │
- * │   instantiate — the factory decides based on the type string.  │
- * ├─────────────────────────────────────────────────────────────────┤
- * │ WHY FACTORY PATTERN?                                           │
- * │   • Adding a new payment type (e.g., CryptoPayment) requires  │
- * │     ZERO changes to existing business logic code.              │
- * │   • Only this factory needs a new case — everything else       │
- * │     works through the Transaction abstraction.                 │
- * │   • Follows the Open/Closed Principle (OCP).                   │
- * ├─────────────────────────────────────────────────────────────────┤
- * │ SCALABILITY:                                                   │
- * │   To add a new payment type (e.g., WalletPayment):             │
- * │   1. Create WalletPayment class extending Transaction ✅       │
- * │   2. Add one case in this factory ✅                            │
- * │   3. Done! No other code changes needed. ✅                     │
- * └─────────────────────────────────────────────────────────────────┘
- */
+
 export class TransactionFactory {
 
     /**
