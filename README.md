@@ -160,10 +160,7 @@ All diagrams are located in `payment-gateway/diagrams/`.
 | Diagram          | File                  | Description                                          |
 |------------------|-----------------------|------------------------------------------------------|
 | Class Diagram    | `class_diagram.png`   | All classes, interfaces, attributes, methods, and relationships |
-| ER Diagram       | `er_diagram.png`      | Entity-Relationship model showing data entities and their associations |
 | Sequence Diagram | `sequence_diagram.png`| End-to-end Send Money flow showing interactions between all components |
-| Use Case Diagram | `usecase_diagram.png` | User-facing functionalities and their included sub-operations |
-
 ---
 
 ## Getting Started
