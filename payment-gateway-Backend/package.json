@@ -1,0 +1,20 @@
+{
+  "name": "payflow-payment-gateway",
+  "version": "1.0.0",
+  "description": "A console-based Payment Gateway System built with TypeScript — demonstrating OOP, SOLID principles, and Design Patterns.",
+  "main": "src/Main.ts",
+  "scripts": {
+    "start": "npx ts-node src/Main.ts",
+    "build": "tsc",
+    "dev": "npx ts-node src/Main.ts",
+    "test": "npx ts-node src/TestCases.ts"
+  },
+  "keywords": ["payment-gateway", "typescript", "oop", "solid", "design-patterns"],
+  "author": "Ankit",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.11.0"
+  }
+}

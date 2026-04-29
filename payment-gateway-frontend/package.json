@@ -1,0 +1,12 @@
+{
+  "name": "payflow-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for the PayFlow Payment Gateway System",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y serve . -l 3001",
+    "start": "npx -y serve . -l 3001"
+  },
+  "author": "",
+  "license": "ISC"
+}
