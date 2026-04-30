@@ -3,22 +3,19 @@
    ═══════════════════════════════════════════════════════════ */
 const Dashboard = (() => {
   function render(user) {
-    const stats = Data.getStatsForUser(user.accountNumber);
-    const txns = Data.getTransactions().filter(t => t.senderBank === user.accountNumber || t.receiverBank === user.accountNumber).slice(0, 5);
-
     return `<div class="page-enter">
       <div class="main__header"><div><h2 class="main__title">Dashboard</h2><p class="main__subtitle">Welcome back, ${user.name}</p></div></div>
 
       <div class="grid-4 section">
-        <div class="card stat-card anim-fade-up anim-delay-1"><div class="stat-card__icon stat-card__icon--green">${Icons.wallet}</div><div class="stat-card__label">Total Balance</div><div class="stat-card__value" id="stat-balance" data-format="amount" data-target="${stats.balance}">₹0.00</div></div>
-        <div class="card stat-card anim-fade-up anim-delay-2"><div class="stat-card__icon stat-card__icon--red">${Icons.arrowUp}</div><div class="stat-card__label">Total Sent</div><div class="stat-card__value" id="stat-sent" data-format="amount" data-target="${stats.totalSent}">₹0.00</div></div>
-        <div class="card stat-card anim-fade-up anim-delay-3"><div class="stat-card__icon stat-card__icon--green">${Icons.arrowDown}</div><div class="stat-card__label">Total Received</div><div class="stat-card__value" id="stat-recv" data-format="amount" data-target="${stats.totalReceived}">₹0.00</div></div>
-        <div class="card stat-card anim-fade-up anim-delay-4"><div class="stat-card__icon stat-card__icon--blue">${Icons.activity}</div><div class="stat-card__label">Transactions</div><div class="stat-card__value" id="stat-count" data-target="${stats.txnCount}">0</div></div>
+        <div class="card stat-card anim-fade-up anim-delay-1"><div class="stat-card__icon stat-card__icon--green">${Icons.wallet}</div><div class="stat-card__label">Total Balance</div><div class="stat-card__value" id="stat-balance">Loading...</div></div>
+        <div class="card stat-card anim-fade-up anim-delay-2"><div class="stat-card__icon stat-card__icon--red">${Icons.arrowUp}</div><div class="stat-card__label">Total Sent</div><div class="stat-card__value" id="stat-sent">Loading...</div></div>
+        <div class="card stat-card anim-fade-up anim-delay-3"><div class="stat-card__icon stat-card__icon--green">${Icons.arrowDown}</div><div class="stat-card__label">Total Received</div><div class="stat-card__value" id="stat-recv">Loading...</div></div>
+        <div class="card stat-card anim-fade-up anim-delay-4"><div class="stat-card__icon stat-card__icon--blue">${Icons.activity}</div><div class="stat-card__label">Transactions</div><div class="stat-card__value" id="stat-count">0</div></div>
       </div>
 
       <div class="section">
         <div class="section__header"><h3 class="section__title">Recent Transactions</h3><button class="section__link" data-nav="history">View All →</button></div>
-        <div class="table-wrap">${renderTable(txns, user)}</div>
+        <div class="table-wrap" id="recent-txns-wrap"><div class="empty-state"><div class="empty-state__title">Loading...</div></div></div>
       </div>
 
       <div class="section"><div class="section__header"><h3 class="section__title">Quick Actions</h3></div>
@@ -30,29 +27,43 @@ const Dashboard = (() => {
     </div>`;
   }
 
-  function renderTable(txns, user) {
+  function renderTable(txns, acc) {
     if (!txns.length) return `<div class="empty-state"><div class="empty-state__icon">${Icons.emptyBox}</div><div class="empty-state__title">No transactions yet</div><div class="empty-state__text">Your transactions will appear here</div></div>`;
     return `<table class="table"><thead><tr><th>Txn ID</th><th>Type</th><th>Amount</th><th>To / From</th><th>Status</th><th>Date</th></tr></thead><tbody>${txns.map(t => {
-      const isSender = t.senderBank === user.accountNumber;
-      const otherAcc = isSender ? t.receiverBank : t.senderBank;
-      const otherUser = Data.getUserByAccount(otherAcc);
-      const otherName = otherUser ? otherUser.name : Data.maskAccount(otherAcc);
+      const isSender = t.sender_bank === acc;
+      const otherAcc = isSender ? t.receiver_bank : t.sender_bank;
+      const otherName = isSender ? (t.receiver_name || Data.maskAccount(otherAcc)) : (t.sender_name || Data.maskAccount(otherAcc));
       const amtClass = isSender ? 'text-danger' : 'text-success';
       const amtPrefix = isSender ? '- ' : '+ ';
-      return `<tr data-txn="${t.txnId}"><td class="mono text-muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.txnId}</td><td>${t.type}</td><td class="mono ${amtClass}">${amtPrefix}${Data.formatAmount(t.amount)}</td><td>${otherName}</td><td>${UI.statusBadge(t.status)}</td><td class="text-muted">${Data.formatDate(t.timestamp)}</td></tr>`;
+      return `<tr><td class="mono text-muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.txn_id}</td><td>${t.type}</td><td class="mono ${amtClass}">${amtPrefix}${Data.formatAmount(t.amount)}</td><td>${otherName}</td><td>${UI.statusBadge(t.status)}</td><td class="text-muted">${Data.formatDate(t.timestamp)}</td></tr>`;
     }).join('')}</tbody></table>`;
   }
 
-  function mount() {
-    // Animate counters
-    document.querySelectorAll('.stat-card__value[data-target]').forEach(el => {
-      UI.animateCounter(el, parseFloat(el.dataset.target));
-    });
+  async function mount(user) {
+    const acc = user.account_number || user.accountNumber;
+    const [stats, txns] = await Promise.all([
+      Data.getStatsForUser(acc),
+      Data.getTransactions(acc),
+    ]);
+
+    const balEl = document.getElementById('stat-balance');
+    const sentEl = document.getElementById('stat-sent');
+    const recvEl = document.getElementById('stat-recv');
+    const countEl = document.getElementById('stat-count');
+    if (balEl) { balEl.dataset.target = stats.balance; balEl.dataset.format = 'amount'; UI.animateCounter(balEl, stats.balance); }
+    if (sentEl) { sentEl.dataset.target = stats.totalSent; sentEl.dataset.format = 'amount'; UI.animateCounter(sentEl, stats.totalSent); }
+    if (recvEl) { recvEl.dataset.target = stats.totalReceived; recvEl.dataset.format = 'amount'; UI.animateCounter(recvEl, stats.totalReceived); }
+    if (countEl) { countEl.dataset.target = stats.txnCount; UI.animateCounter(countEl, stats.txnCount); }
+
+    const wrap = document.getElementById('recent-txns-wrap');
+    if (wrap) wrap.innerHTML = renderTable(txns.slice(0, 5), acc);
+
     // Quick actions
     const qaUpi = document.getElementById('qa-upi');
     const qaNb = document.getElementById('qa-nb');
     if (qaUpi) qaUpi.addEventListener('click', () => Payment.open('UPI'));
     if (qaNb)  qaNb.addEventListener('click', () => Payment.open('NETBANKING'));
+
     // View all link
     document.querySelectorAll('[data-nav]').forEach(el => {
       el.addEventListener('click', () => Router.navigate(el.dataset.nav));

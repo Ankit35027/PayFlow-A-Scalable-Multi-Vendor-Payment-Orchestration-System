@@ -32,10 +32,11 @@ const Router = (() => {
       { id: 'history',   icon: Icons.list,   label: 'History' },
       { id: 'balance',   icon: Icons.wallet, label: 'Balance' },
     ];
+    const userId = user.user_id || user.userId;
 
     const sidebar = `<aside class="sidebar" role="navigation" aria-label="Main navigation">
       <div class="sidebar__brand"><div class="sidebar__logo" aria-hidden="true">PGS</div><span class="sidebar__brand-text">PayFlow</span></div>
-      <div class="sidebar__user"><div class="sidebar__avatar" aria-hidden="true">${initials}</div><div class="sidebar__user-info"><div class="sidebar__user-name">${user.name}</div><div class="sidebar__user-id">${user.userId}</div></div></div>
+      <div class="sidebar__user"><div class="sidebar__avatar" aria-hidden="true">${initials}</div><div class="sidebar__user-info"><div class="sidebar__user-name">${user.name}</div><div class="sidebar__user-id">${userId}</div></div></div>
       <nav class="sidebar__nav">${navItems.map(n => `<button class="sidebar__link ${route === n.id ? 'sidebar__link--active' : ''}" data-nav="${n.id}" aria-label="${n.label}"><span class="sidebar__link-icon">${n.icon}</span><span class="sidebar__link-text">${n.label}</span></button>`).join('')}
         <button class="sidebar__link" id="sidebar-logout" aria-label="Logout"><span class="sidebar__link-icon">${Icons.logout}</span><span class="sidebar__link-text">Logout</span></button>
       </nav>
@@ -57,10 +58,11 @@ const Router = (() => {
   }
 
   function renderBalance(user) {
+    const acc = user.account_number || user.accountNumber;
     return `<div class="page-enter"><div class="main__header"><h2 class="main__title">Check Balance</h2></div>
       <div class="balance-page">
         <div class="balance-page__icon">${Icons.wallet}</div>
-        <div class="balance-page__account">${Data.maskAccount(user.accountNumber)}</div>
+        <div class="balance-page__account">${Data.maskAccount(acc)}</div>
         <div class="balance-page__amount" id="balance-amount"></div>
         <button class="btn btn--primary btn--lg" id="reveal-balance">${Icons.eye} Reveal Balance</button>
         <div class="balance-page__time" id="balance-time"></div>
@@ -87,7 +89,7 @@ const Router = (() => {
     document.getElementById('bnav-logout')?.addEventListener('click', Auth.logout);
 
     // Page-specific
-    if (route === 'dashboard') Dashboard.mount();
+    if (route === 'dashboard') Dashboard.mount(user);
     else if (route === 'history') History.mount(user);
     else if (route === 'balance') mountBalance(user);
     else if (route === 'send') {
@@ -101,17 +103,16 @@ const Router = (() => {
     const amtEl = document.getElementById('balance-amount');
     const timeEl = document.getElementById('balance-time');
     if (!btn) return;
-    btn.addEventListener('click', () => {
-      const bal = Data.getBalance(user.accountNumber);
+    btn.addEventListener('click', async () => {
+      const acc = user.account_number || user.accountNumber;
+      const bal = await Data.getBalance(acc);
       amtEl.classList.add('visible');
       amtEl.classList.add('glowing');
       amtEl.dataset.format = 'amount';
       UI.animateCounter(amtEl, bal);
       timeEl.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
       btn.style.display = 'none';
-      setTimeout(() => {
-        amtEl.classList.remove('glowing');
-      }, 2000);
+      setTimeout(() => amtEl.classList.remove('glowing'), 2000);
     });
   }
 

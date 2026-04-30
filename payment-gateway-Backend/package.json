@@ -4,17 +4,32 @@
   "description": "A console-based Payment Gateway System built with TypeScript — demonstrating OOP, SOLID principles, and Design Patterns.",
   "main": "src/Main.ts",
   "scripts": {
-    "start": "npx ts-node src/Main.ts",
+    "start": "npx ts-node src/api.ts",
     "build": "tsc",
-    "dev": "npx ts-node src/Main.ts",
+    "dev": "npx ts-node src/api.ts",
+    "cli": "npx ts-node src/Main.ts",
     "test": "npx ts-node src/TestCases.ts"
   },
-  "keywords": ["payment-gateway", "typescript", "oop", "solid", "design-patterns"],
+  "keywords": [
+    "payment-gateway",
+    "typescript",
+    "oop",
+    "solid",
+    "design-patterns"
+  ],
   "author": "Ankit",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.4.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.11.0",
     "ts-node": "^10.9.0",
-    "@types/node": "^20.11.0"
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
   }
 }

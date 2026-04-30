@@ -5,11 +5,13 @@ const Payment = (() => {
   let currentStep = 1;
   let paymentType = 'UPI';
   let formData = {};
+  let cachedUsers = [];
 
-  function open(type) {
+  async function open(type) {
     paymentType = type;
     currentStep = 1;
     formData = {};
+    cachedUsers = await Data.getUsers();
     renderStep();
   }
 
@@ -18,13 +20,9 @@ const Payment = (() => {
     const label = paymentType === 'UPI' ? '📱 UPI Payment' : '🏦 Net Banking';
     let body = '';
 
-    if (currentStep === 1) {
-      body = renderStep1(user);
-    } else if (currentStep === 2) {
-      body = renderStep2(user);
-    } else {
-      body = renderStep3();
-    }
+    if (currentStep === 1) body = renderStep1(user);
+    else if (currentStep === 2) body = renderStep2(user);
+    else body = renderStep3();
 
     UI.openModal(`
       <div class="modal__header"><h3 class="modal__title">${label}</h3><button class="modal__close" id="modal-close-btn" aria-label="Close">${Icons.close}</button></div>
@@ -38,13 +36,14 @@ const Payment = (() => {
   }
 
   function renderStep1(user) {
-    const otherUsers = Data.getUsers().filter(u => u.accountNumber !== user.accountNumber);
+    const acc = user.account_number || user.accountNumber;
+    const otherUsers = cachedUsers.filter(u => u.account_number !== acc);
     return `<form id="pay-step1" novalidate>
       <div class="input-group">
         <label class="input-group__label" for="pay-receiver">Receiver Account</label>
         <select class="input-group__field" id="pay-receiver">
           <option value="">Select recipient</option>
-          ${otherUsers.map(u => `<option value="${u.accountNumber}">${u.name} (${Data.maskAccount(u.accountNumber)})</option>`).join('')}
+          ${otherUsers.map(u => `<option value="${u.account_number}">${u.name} (${Data.maskAccount(u.account_number)})</option>`).join('')}
         </select>
         <div class="input-group__error" aria-live="polite"></div>
       </div>
@@ -71,35 +70,39 @@ const Payment = (() => {
     const container = document.getElementById('mpin-container');
     if (container) UI.initMpinDots(container);
 
-    document.getElementById('pay-step1').addEventListener('submit', (e) => {
+    document.getElementById('pay-step1').addEventListener('submit', async (e) => {
       e.preventDefault();
       const user = Data.getCurrentUser();
+      const acc = user.account_number || user.accountNumber;
       const receiver = document.getElementById('pay-receiver').value;
       const amount = parseFloat(document.getElementById('pay-amount').value);
       const mpin = UI.getMpinValue(document.getElementById('mpin-container'));
 
-      // Validate
       let valid = true;
       const recvGroup = document.getElementById('pay-receiver').parentElement;
       const amtGroup = document.getElementById('pay-amount').closest('.input-group');
       UI.clearAllErrors(document.getElementById('pay-step1'));
 
       if (!receiver) { UI.setError(recvGroup, 'Select a recipient'); valid = false; }
-      if (!amount || amount <= 0) { UI.setError(amtGroup || document.getElementById('pay-amount').parentElement.parentElement, 'Enter valid amount'); valid = false; }
-      if (amount > Data.getBalance(user.accountNumber)) { UI.setError(amtGroup || document.getElementById('pay-amount').parentElement.parentElement, 'Insufficient balance'); valid = false; }
+      if (!amount || amount <= 0) { UI.setError(amtGroup, 'Enter valid amount'); valid = false; }
       if (mpin.length !== 4) { document.getElementById('mpin-error').textContent = 'Enter 4-digit MPIN'; valid = false; }
-      if (mpin.length === 4 && parseInt(mpin) !== user.mpin) { document.getElementById('mpin-error').textContent = 'Incorrect MPIN'; valid = false; }
       if (!valid) return;
 
-      formData = { receiver, amount, mpin, receiverName: Data.getUserByAccount(receiver)?.name || Data.maskAccount(receiver) };
+      // Check balance via API
+      const balance = await Data.getBalance(acc);
+      if (amount > balance) { UI.setError(amtGroup, `Insufficient balance (${Data.formatAmount(balance)})`); return; }
+
+      const receiverUser = cachedUsers.find(u => u.account_number === receiver);
+      formData = { receiver, amount, mpin, receiverName: receiverUser ? receiverUser.name : Data.maskAccount(receiver) };
       currentStep = 2;
       renderStep();
     });
   }
 
   function renderStep2(user) {
+    const acc = user.account_number || user.accountNumber;
     return `<div class="confirm-summary">
-      <div class="confirm-summary__row"><span class="confirm-summary__label">From</span><span class="confirm-summary__value">${user.name} (${Data.maskAccount(user.accountNumber)})</span></div>
+      <div class="confirm-summary__row"><span class="confirm-summary__label">From</span><span class="confirm-summary__value">${user.name} (${Data.maskAccount(acc)})</span></div>
       <div class="confirm-summary__row"><span class="confirm-summary__label">To</span><span class="confirm-summary__value">${formData.receiverName}</span></div>
       <div class="confirm-summary__row"><span class="confirm-summary__label">Method</span><span class="confirm-summary__value">${paymentType}</span></div>
       <hr class="confirm-summary__divider">
@@ -117,10 +120,12 @@ const Payment = (() => {
       const btn = document.getElementById('pay-confirm');
       btn.disabled = true;
       btn.innerHTML = `<span class="btn__spinner"></span> Processing...`;
-      await UI.delay(1200);
 
       const user = Data.getCurrentUser();
-      const result = Data.processTransaction(paymentType, user.accountNumber, formData.receiver, formData.amount);
+      const acc = user.account_number || user.accountNumber;
+      const result = await Data.processTransaction(
+        paymentType, acc, formData.receiver, formData.amount, formData.mpin
+      );
       formData.result = result;
       currentStep = 3;
       renderStep();
@@ -130,15 +135,15 @@ const Payment = (() => {
   function renderStep3() {
     const result = formData.result;
     if (result.success) {
+      const txn = result.transaction;
       return `<div class="result-anim">
         <div class="result-anim__circle result-anim__circle--success">${Icons.successCheck}</div>
         <div class="result-anim__title">Payment Successful!</div>
         <div class="result-anim__subtitle">Your money is on its way</div>
         <div class="receipt">
-          <div class="receipt__row"><span class="receipt__label">Transaction ID</span><span class="receipt__value">${result.transaction.txnId}</span></div>
-          <div class="receipt__row"><span class="receipt__label">Amount</span><span class="receipt__value">${Data.formatAmount(result.transaction.amount)}</span></div>
-          <div class="receipt__row"><span class="receipt__label">Method</span><span class="receipt__value">${result.transaction.type}</span></div>
-          <div class="receipt__row"><span class="receipt__label">Time</span><span class="receipt__value">${Data.formatDate(result.transaction.timestamp)}</span></div>
+          <div class="receipt__row"><span class="receipt__label">Transaction ID</span><span class="receipt__value">${txn.txnId || ''}</span></div>
+          <div class="receipt__row"><span class="receipt__label">Amount</span><span class="receipt__value">${Data.formatAmount(formData.amount)}</span></div>
+          <div class="receipt__row"><span class="receipt__label">Method</span><span class="receipt__value">${paymentType}</span></div>
         </div>
       </div>
       <div style="display:flex;gap:var(--space-3);margin-top:var(--space-4)">

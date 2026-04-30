@@ -84,24 +84,32 @@ const Auth = (() => {
   function bindForms() {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-      loginForm.addEventListener('submit', (e) => {
+      loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         UI.clearAllErrors(loginForm);
         const uid = document.getElementById('login-uid').value.trim();
         const pw = document.getElementById('login-pw').value;
         if (!uid) { UI.setError(document.getElementById('login-uid').parentElement, 'User ID is required'); return; }
         if (!pw) { UI.setError(document.getElementById('login-pw').parentElement, 'Password is required'); return; }
-        const user = Data.getUsers().find(u => u.userId === uid);
-        if (!user) { UI.setError(document.getElementById('login-uid').parentElement, 'User not found'); return; }
-        if (user.password !== pw) { UI.setError(document.getElementById('login-pw').parentElement, 'Incorrect password'); return; }
-        Data.setCurrentUser(user);
-        UI.toast('success', 'Welcome!', `Logged in as ${user.name}`);
+
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in...';
+
+        const result = await Data.login(uid, pw);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Login';
+
+        if (!result.success) { UI.setError(document.getElementById('login-uid').parentElement, result.error); return; }
+        Data.setCurrentUser(result.user);
+        UI.toast('success', 'Welcome!', `Logged in as ${result.user.name}`);
         Router.navigate('dashboard');
       });
     }
+
     const regForm = document.getElementById('register-form');
     if (regForm) {
-      regForm.addEventListener('submit', (e) => {
+      regForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         UI.clearAllErrors(regForm);
         const name = document.getElementById('reg-name').value.trim();
@@ -118,7 +126,15 @@ const Auth = (() => {
         if (!pw || pw.length < 4) { UI.setError(document.getElementById('reg-pw').parentElement, 'Min 4 characters'); valid = false; }
         if (!mpin || mpin.length !== 4) { UI.setError(document.getElementById('reg-mpin').parentElement, 'Must be 4 digits'); valid = false; }
         if (!valid) return;
-        const result = Data.registerUser(name, phone, acc, uid, pw, mpin);
+
+        const submitBtn = regForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Registering...';
+
+        const result = await Data.registerUser(name, phone, acc, uid, pw, mpin);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Register';
+
         if (!result.success) { UI.toast('error', 'Registration Failed', result.error); return; }
         UI.toast('success', 'Account Created!', 'You can now login');
         const loginTabBtn = document.getElementById('tab-login');

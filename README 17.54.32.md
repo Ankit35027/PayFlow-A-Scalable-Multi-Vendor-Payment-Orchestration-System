@@ -1,8 +1,26 @@
 # PayFlow — Payment Gateway System
 
-A console-based Payment Gateway System built with TypeScript that simulates how users send money through a payment gateway. The project demonstrates Object-Oriented Programming, SOLID principles, and Design Patterns in a practical, real-world context.
+A scalable multi-vendor Payment Gateway System built with TypeScript, Express, and NeonDB — demonstrating Object-Oriented Programming, SOLID principles, and Design Patterns in a practical, real-world context.
 
-The system also includes a standalone web-based frontend built with HTML, CSS, and Vanilla JavaScript, designed as a luxury fintech interface.
+The system includes a web-based frontend built with HTML, CSS, and Vanilla JavaScript, a REST API backend deployed on Vercel, and a PostgreSQL database hosted on NeonDB.
+
+---
+
+## 🚀 Live Deployment
+
+| Layer    | URL |
+|----------|-----|
+| **Frontend** | https://payflow-frontend-qhic1pv2o-adarsh-vashishthas-projects.vercel.app |
+| **Backend API** | https://payflow-backend-k5gp3gryw-adarsh-vashishthas-projects.vercel.app |
+| **Database** | https://console.neon.tech/app/projects |
+
+### Demo Credentials
+
+| Name | User ID | Password | MPIN |
+|------|---------|----------|------|
+| Arjun Sharma | U001 | pass123 | 1234 |
+| Priya Mehta | U002 | pass456 | 5678 |
+| Rahul Verma | U003 | pass789 | 9012 |
 
 ---
 
@@ -87,13 +105,14 @@ PayFlow/
 
 ## Tech Stack
 
-| Layer    | Technology                          |
-|----------|-------------------------------------|
-| Backend  | TypeScript, Node.js, ts-node        |
-| Frontend | HTML5, CSS3, Vanilla JavaScript     |
-| Fonts    | Google Fonts (Sora, DM Sans, JetBrains Mono) |
-| Server   | `npx serve` (static file server)    |
-| Testing  | Custom test runner (TestCases.ts)   |
+| Layer      | Technology                                          |
+|------------|-----------------------------------------------------|
+| Backend    | TypeScript, Node.js, Express, ts-node               |
+| Frontend   | HTML5, CSS3, Vanilla JavaScript                     |
+| Database   | PostgreSQL (NeonDB serverless)                      |
+| Deployment | Vercel (frontend + backend), NeonDB (database)      |
+| Fonts      | Google Fonts (Sora, DM Sans, JetBrains Mono)        |
+| Testing    | Custom test runner (TestCases.ts)                   |
 
 ---
 
@@ -191,27 +210,54 @@ All diagrams are located in `payment-gateway/diagrams/`.
 
 - Node.js (v18 or above)
 - npm
+- A NeonDB account (https://neon.tech)
 
-### Backend Setup
+### Backend Setup (Local)
 
 ```bash
-cd payment-gateway
+cd payment-gateway-Backend
 npm install
+cp .env.example .env
+# Add your DATABASE_URL to .env
 npm run dev
 ```
 
-This starts the console-based interactive application. Follow the on-screen menu to register users, log in, send money, check balance, view history, or cancel transactions.
+The API server starts on `http://localhost:3000`.
 
-### Frontend Setup
+To run the original console-based CLI app:
+```bash
+npm run cli
+```
+
+### Frontend Setup (Local)
 
 ```bash
 cd payment-gateway-frontend
+# Update js/config.js with your local backend URL: http://localhost:3000
 npm run dev
 ```
 
-This starts a static file server on `http://localhost:3001`. Open the URL in any modern browser.
+Opens on `http://localhost:3001`.
 
-Note: The frontend currently uses `sessionStorage` as a mock data layer. It operates independently of the backend and is designed to demonstrate the UI/UX layer.
+### Database Setup
+
+1. Create a project on https://neon.tech
+2. Run `schema.sql` in the NeonDB SQL editor
+3. Add the connection string as `DATABASE_URL` in your `.env`
+
+### Deploy to Vercel
+
+```bash
+# Backend
+cd payment-gateway-Backend
+vercel --prod
+# Set DATABASE_URL in Vercel environment variables
+
+# Frontend
+cd payment-gateway-frontend
+# Update js/config.js with your backend Vercel URL
+vercel --prod
+```
 
 ---
 

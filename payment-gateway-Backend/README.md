@@ -1,8 +1,25 @@
 # 💳 PayFlow — Payment Gateway System
 
-> A **console-based Payment Gateway System** built with TypeScript that simulates how users
-> send money through a payment gateway. Demonstrates **OOP**, **SOLID Principles**, and
-> **Design Patterns** in a clean, beginner-friendly codebase.
+> A **scalable multi-vendor Payment Gateway System** built with TypeScript, Express, and NeonDB.
+> Demonstrates **OOP**, **SOLID Principles**, and **Design Patterns** with a full-stack deployment.
+
+---
+
+## 🚀 Live Deployment
+
+| Layer | URL |
+|-------|-----|
+| **Frontend** | https://payflow-frontend-qhic1pv2o-adarsh-vashishthas-projects.vercel.app |
+| **Backend API** | https://payflow-backend-k5gp3gryw-adarsh-vashishthas-projects.vercel.app |
+| **Database** | https://console.neon.tech/app/projects |
+
+### Demo Credentials
+
+| Name | User ID | Password | MPIN | Account | Balance |
+|------|---------|----------|------|---------|---------|
+| Arjun Sharma | U001 | pass123 | 1234 | ACC001 | ₹25,000.00 |
+| Priya Mehta | U002 | pass456 | 5678 | ACC002 | ₹12,500.50 |
+| Rahul Verma | U003 | pass789 | 9012 | ACC003 | ₹8,750.75 |
 
 ---
 

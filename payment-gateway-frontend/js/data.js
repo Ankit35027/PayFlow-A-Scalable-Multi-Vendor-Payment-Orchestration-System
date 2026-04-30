@@ -1,33 +1,11 @@
 /* ═══════════════════════════════════════════════════════════
-   DATA — Mock data + sessionStorage helpers
+   DATA — API-backed data layer (NeonDB via backend)
    ═══════════════════════════════════════════════════════════ */
 const Data = (() => {
-  const MOCK_USERS = [
-    { userId: "U001", name: "Arjun Sharma", accountNumber: "ACC001", mpin: 1234, password: "pass123", phoneNumber: "9876543210" },
-    { userId: "U002", name: "Priya Mehta", accountNumber: "ACC002", mpin: 5678, password: "pass456", phoneNumber: "9123456789" },
-    { userId: "U003", name: "Rahul Verma", accountNumber: "ACC003", mpin: 9012, password: "pass789", phoneNumber: "9988776655" },
-  ];
-  const MOCK_BALANCES = { "ACC001": 25000.00, "ACC002": 12500.50, "ACC003": 8750.75 };
-  const MOCK_TRANSACTIONS = [
-    { txnId: "TXN202600001", type: "UPI", amount: 2500, senderBank: "ACC001", receiverBank: "ACC002", status: "SUCCESS", timestamp: "2026-04-01T10:30:00" },
-    { txnId: "TXN202600002", type: "NETBANKING", amount: 5000, senderBank: "ACC002", receiverBank: "ACC003", status: "PENDING", timestamp: "2026-04-02T14:15:00" },
-    { txnId: "TXN202600003", type: "UPI", amount: 750, senderBank: "ACC001", receiverBank: "ACC003", status: "FAILED", timestamp: "2026-04-03T09:45:00" },
-    { txnId: "TXN202600004", type: "NETBANKING", amount: 12000, senderBank: "ACC003", receiverBank: "ACC001", status: "SUCCESS", timestamp: "2026-04-04T16:20:00" },
-  ];
+  // Set this to your deployed Vercel backend URL
+  const API_BASE = window.PAYFLOW_API_BASE || "https://your-backend.vercel.app";
 
-  function init() {
-    if (!sessionStorage.getItem('pgs_users')) sessionStorage.setItem('pgs_users', JSON.stringify(MOCK_USERS));
-    if (!sessionStorage.getItem('pgs_balances')) sessionStorage.setItem('pgs_balances', JSON.stringify(MOCK_BALANCES));
-    if (!sessionStorage.getItem('pgs_transactions')) sessionStorage.setItem('pgs_transactions', JSON.stringify(MOCK_TRANSACTIONS));
-  }
-
-  function getUsers() { return JSON.parse(sessionStorage.getItem('pgs_users') || '[]'); }
-  function setUsers(u) { sessionStorage.setItem('pgs_users', JSON.stringify(u)); }
-  function getBalances() { return JSON.parse(sessionStorage.getItem('pgs_balances') || '{}'); }
-  function setBalances(b) { sessionStorage.setItem('pgs_balances', JSON.stringify(b)); }
-  function getTransactions() { return JSON.parse(sessionStorage.getItem('pgs_transactions') || '[]'); }
-  function setTransactions(t) { sessionStorage.setItem('pgs_transactions', JSON.stringify(t)); }
-
+  // ── Current User (sessionStorage only) ──────────────────────────
   function getCurrentUser() {
     const u = sessionStorage.getItem('pgs_currentUser');
     return u ? JSON.parse(u) : null;
@@ -35,62 +13,94 @@ const Data = (() => {
   function setCurrentUser(u) { sessionStorage.setItem('pgs_currentUser', JSON.stringify(u)); }
   function clearCurrentUser() { sessionStorage.removeItem('pgs_currentUser'); }
 
-  function getUserByAccount(acc) { return getUsers().find(u => u.accountNumber === acc); }
-  function getBalance(acc) { return getBalances()[acc] ?? 0; }
-
-  function generateTxnId() { return 'TXN' + Date.now(); }
-
-  function processTransaction(type, senderAcc, receiverAcc, amount) {
-    const balances = getBalances();
-    const senderBal = balances[senderAcc] ?? 0;
-    if (senderBal < amount) return { success: false, error: 'Insufficient balance' };
-    if (!balances.hasOwnProperty(receiverAcc)) return { success: false, error: 'Invalid receiver account' };
-
-    balances[senderAcc] -= amount;
-    balances[receiverAcc] += amount;
-    setBalances(balances);
-
-    const txn = {
-      txnId: generateTxnId(), type, amount,
-      senderBank: senderAcc, receiverBank: receiverAcc,
-      status: 'SUCCESS', timestamp: new Date().toISOString(),
-    };
-    const txns = getTransactions();
-    txns.unshift(txn);
-    setTransactions(txns);
-    return { success: true, transaction: txn };
+  // ── Auth ─────────────────────────────────────────────────────────
+  async function login(userId, password) {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error };
+    return { success: true, user: data.user };
   }
 
-  function registerUser(name, phone, accountNumber, userId, password, mpin) {
-    const users = getUsers();
-    if (users.find(u => u.userId === userId)) return { success: false, error: 'User ID already exists' };
-    if (users.find(u => u.accountNumber === accountNumber)) return { success: false, error: 'Account number already exists' };
-
-    const newUser = { userId, name, accountNumber, mpin: parseInt(mpin), password, phoneNumber: phone };
-    users.push(newUser);
-    setUsers(users);
-
-    const balances = getBalances();
-    balances[accountNumber] = 10000;
-    setBalances(balances);
-
-    return { success: true, user: newUser };
+  async function registerUser(name, phone, accountNumber, userId, password, mpin) {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phoneNumber: phone, accountNumber, userId, password, mpin }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error };
+    return { success: true };
   }
 
-  function getStatsForUser(acc) {
-    const txns = getTransactions();
-    const balance = getBalance(acc);
+  // ── Balance ──────────────────────────────────────────────────────
+  async function getBalance(accountNumber) {
+    const res = await fetch(`${API_BASE}/api/balance/${accountNumber}`);
+    const data = await res.json();
+    return res.ok ? data.balance : 0;
+  }
+
+  // ── Users ────────────────────────────────────────────────────────
+  async function getUsers() {
+    const res = await fetch(`${API_BASE}/api/users`);
+    const data = await res.json();
+    return res.ok ? data.users : [];
+  }
+
+  async function getUserByAccount(accountNumber) {
+    const users = await getUsers();
+    return users.find(u => u.account_number === accountNumber) || null;
+  }
+
+  // ── Transactions ─────────────────────────────────────────────────
+  async function getTransactions(accountNumber) {
+    const url = accountNumber
+      ? `${API_BASE}/api/transactions?account=${accountNumber}`
+      : `${API_BASE}/api/transactions`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return res.ok ? data.transactions : [];
+  }
+
+  async function processTransaction(type, senderBank, receiverBank, amount, mpin, extra = {}) {
+    const res = await fetch(`${API_BASE}/api/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type, senderBank, receiverBank, amount, mpin, ...extra }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error };
+    return { success: true, transaction: data };
+  }
+
+  async function cancelTransaction(txnId) {
+    const res = await fetch(`${API_BASE}/api/transactions/${txnId}/cancel`, { method: 'PATCH' });
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data.error };
+    return { success: true };
+  }
+
+  // ── Stats ────────────────────────────────────────────────────────
+  async function getStatsForUser(accountNumber) {
+    const [balance, txns] = await Promise.all([
+      getBalance(accountNumber),
+      getTransactions(accountNumber),
+    ]);
     let totalSent = 0, totalReceived = 0, txnCount = 0;
     txns.forEach(t => {
       if (t.status === 'SUCCESS') {
-        if (t.senderBank === acc) totalSent += t.amount;
-        if (t.receiverBank === acc) totalReceived += t.amount;
+        if (t.sender_bank === accountNumber) totalSent += parseFloat(t.amount);
+        if (t.receiver_bank === accountNumber) totalReceived += parseFloat(t.amount);
       }
-      if (t.senderBank === acc || t.receiverBank === acc) txnCount++;
+      if (t.sender_bank === accountNumber || t.receiver_bank === accountNumber) txnCount++;
     });
     return { balance, totalSent, totalReceived, txnCount };
   }
 
+  // ── Formatters ───────────────────────────────────────────────────
   function formatAmount(n) {
     return '₹' + Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
@@ -106,11 +116,14 @@ const Data = (() => {
     return acc.substring(0, 3) + '***' + acc.slice(-2);
   }
 
-  init();
+  function generateTxnId() { return 'TXN' + Date.now(); }
+
   return {
-    getUsers, setUsers, getBalances, setBalances, getTransactions, setTransactions,
     getCurrentUser, setCurrentUser, clearCurrentUser,
-    getUserByAccount, getBalance, generateTxnId, processTransaction,
-    registerUser, getStatsForUser, formatAmount, formatDate, maskAccount,
+    login, registerUser,
+    getBalance, getUsers, getUserByAccount,
+    getTransactions, processTransaction, cancelTransaction,
+    getStatsForUser,
+    formatAmount, formatDate, maskAccount, generateTxnId,
   };
 })();
